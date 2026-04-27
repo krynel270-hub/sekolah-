@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyDay — Daily Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+  :root {
+    --md-primary: #1a73e8;
+    --md-primary-container: #d2e3fc;
+    --md-on-primary: #ffffff;
+    --md-secondary: #137333;
+    --md-error: #c5221f;
+    --md-warning: #f29900;
+    --md-surface: #f8f9fa;
+    --md-surface-1: #ffffff;
+    --md-surface-2: #f1f3f4;
+    --md-on-surface: #202124;
+    --md-on-surface-variant: #5f6368;
+    --md-outline: #dadce0;
+    --md-outline-variant: #e8eaed;
+    --md-shadow: rgba(60,64,67,0.12);
+    --md-shadow-md: rgba(60,64,67,0.20);
+    --md-blue-chip: #e8f0fe;
+    --md-blue-chip-text: #1a73e8;
+    --md-green-chip: #e6f4ea;
+    --md-green-chip-text: #137333;
+    --md-red-chip: #fce8e6;
+    --md-red-chip-text: #c5221f;
+    --md-yellow-chip: #fef7e0;
+    --md-yellow-chip-text: #7b5a00;
+    --md-radius: 12px;
+    --md-radius-lg: 20px;
+    --md-radius-full: 100px;
+    --md-transition: 0.2s cubic-bezier(0.2, 0, 0, 1);
+    --nav-height: 68px;
+  }
+  [data-theme="dark"] {
+    --md-primary: #8ab4f8;
+    --md-primary-container: #1a3a6b;
+    --md-on-primary: #1a1d1e;
+    --md-secondary: #81c995;
+    --md-error: #f28b82;
+    --md-warning: #fdd663;
+    --md-surface: #1c1e21;
+    --md-surface-1: #282a2d;
+    --md-surface-2: #313335;
+    --md-on-surface: #e8eaed;
+    --md-on-surface-variant: #9aa0a6;
+    --md-outline: #3c4043;
+    --md-outline-variant: #35373a;
+    --md-shadow: rgba(0,0,0,0.4);
+    --md-shadow-md: rgba(0,0,0,0.6);
+    --md-blue-chip: #1a3a6b;
+    --md-blue-chip-text: #8ab4f8;
+    --md-green-chip: #0d3821;
+    --md-green-chip-text: #81c995;
+    --md-red-chip: #4b1c1a;
+    --md-red-chip-text: #f28b82;
+    --md-yellow-chip: #3b2e00;
+    --md-yellow-chip-text: #fdd663;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: var(--md-surface);
+    color: var(--md-on-surface);
+    min-height: 100vh;
+    transition: background var(--md-transition), color var(--md-transition);
+    overflow-x: hidden;
+  }
+
+  /* === TOP APP BAR === */
+  .top-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--md-surface-1);
+    border-bottom: 1px solid var(--md-outline-variant);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    box-shadow: 0 1px 3px var(--md-shadow);
+    transition: background var(--md-transition), border-color var(--md-transition);
+  }
+  .top-bar .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #1a73e8, #34a853);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-icon .material-icons-round { color: #fff; font-size: 20px; }
+  .logo-text {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    letter-spacing: -0.3px;
+  }
+  .logo-text span { color: var(--md-primary); }
+  .top-bar-actions { display: flex; gap: 8px; align-items: center; }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border: none; background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--md-on-surface-variant);
+    transition: background var(--md-transition);
+  }
+  .icon-btn:hover { background: var(--md-surface-2); }
+  .icon-btn .material-icons-round { font-size: 22px; }
+
+  /* === MAIN CONTENT === */
+  .main {
+    padding-top: 64px;
+    padding-bottom: calc(var(--nav-height) + 16px);
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* === PAGE SECTIONS === */
+  .page { display: none; padding: 20px 16px; }
+  .page.active { display: block; }
+
+  /* === HERO CLOCK (HOME) === */
+  .hero-clock {
+    background: linear-gradient(145deg, #1a73e8, #0d47a1);
+    border-radius: var(--md-radius-lg);
+    padding: 28px 24px 24px;
+    color: #fff;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  [data-theme="dark"] .hero-clock {
+    background: linear-gradient(145deg, #1a3a6b, #0d2744);
+  }
+  .hero-clock::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .hero-clock::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; right: 30px;
+    width: 100px; height: 100px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .clock-time {
+    font-family: 'Google Sans Display', sans-serif;
+    font-size: 56px;
+    font-weight: 400;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .clock-date {
+    font-size: 15px;
+    opacity: 0.85;
+    font-weight: 400;
+    font-family: 'Google Sans', sans-serif;
+  }
+  .clock-day {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  /* === ALERT STRIP === */
+  .alert-strip {
+    border-radius: var(--md-radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: slideIn 0.3s ease;
+  }
+  .alert-strip.urgent {
+    background: var(--md-red-chip);
+    border: 1px solid color-mix(in srgb, var(--md-error) 30%, transparent);
+  }
+  .alert-strip.info {
+    background: var(--md-blue-chip);
+    border: 1px solid color-mix(in srgb, var(--md-primary) 20%, transparent);
+  }
+  .alert-strip.success {
+    background: var(--md-green-chip);
+    border: 1px solid color-mix(in srgb, var(--md-secondary) 20%, transparent);
+  }
+  .alert-strip .material-icons-round { font-size: 20px; margin-top: 1px; }
+  .alert-strip.urgent .material-icons-round { color: var(--md-error); }
+  .alert-strip.info .material-icons-round { color: var(--md-primary); }
+  .alert-strip.success .material-icons-round { color: var(--md-secondary); }
+  .alert-content { flex: 1; }
+  .alert-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--md-on-surface);
+    margin-bottom: 2px;
+  }
+  .alert-desc { font-size: 13px; color: var(--md-on-surface-variant); line-height: 1.4; }
+
+  /* === SECTION HEADER === */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    margin-top: 8px;
+  }
+  .section-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--md-on-surface);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .material-icons-round { font-size: 18px; color: var(--md-primary); }
+  .see-all-btn {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--md-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background var(--md-transition);
+  }
+  .see-all-btn:hover { background: var(--md-blue-chip); }
+
+  /* === CARD === */
+  .card {
+    background: var(--md-surface-1);
+    border-radius: var(--md-radius);
+    border: 1px solid var(--md-outline-variant);
+    overflow: hidden;
+    transition: background var(--md-transition), border-color var(--md-transition), box-shadow var(--md-transition);
+    margin-bottom: 10px;
+  }
+  .card:hover {
+    box-shadow: 0 2px 8px var(--md-shadow);
+  }
+
+  /* === TASK ITEM === */
+  .task-item {
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border-bottom: 1px solid var(--md-outline-variant);
+    cursor: pointer;
+    transition: background var(--md-transition);
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-item:hover { background: var(--md-surface-2); }
+  .task-item.done { opacity: 0.55; }
+  .task-item.done .task-title { text-decoration: line-through; }
+
+  .task-check {
+    width: 20px; height: 20px;
+    border: 2px solid var(--md-outline);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+    transition: all var(--md-transition);
+    cursor: pointer;
+  }
+  .task-check.checked {
+    background: var(--md-primary);
+    border-color: var(--md-primary);
+  }
+  .task-check.checked::after {
+    content: '';
+    width: 10px; height: 6px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translate(1px, -1px);
+    display: block;
+  }
+  .task-body { flex: 1; min-width: 0; }
+  .task-subject-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+  }
+  .task-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--md-on-surface);
+    line-height: 1.3;
+  }
+  .task-meta {
+    font-size: 12px;
+    color: var(--md-on-surface-variant);
+    margin-top: 3px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: var(--md-radius-full);
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'Google Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .chip.blue { background: var(--md-blue-chip); color: var(--md-blue-chip-text); }
+  .chip.green { background: var(--md-green-chip); color: var(--md-green-chip-text); }
+  .chip.red { background: var(--md-red-chip); color: var(--md-red-chip-text); }
+  .chip.yellow { background: var(--md-yellow-chip); color: var(--md-yellow-chip-text); }
+  .chip.gray { background: var(--md-surface-2); color: var(--md-on-surface-variant); }
+
+  .priority-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .priority-dot.high { background: var(--md-error); }
+  .priority-dot.medium { background: var(--md-warning); }
+  .priority-dot.low { background: var(--md-secondary); }
+
+  .task-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity var(--md-transition);
+  }
+  .task-item:hover .task-actions { opacity: 1; }
+  .task-action-btn {
+    width: 28px; height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--md-on-surface-variant);
+    transition: background var(--md-transition);
+  }
+  .task-action-btn:hover { background: var(--md-surface-2); }
+  .task-action-btn .material-icons-round { font-size: 16px; }
+  .task-action-btn.delete:hover { background: var(--md-red-chip); color: var(--md-error); }
+
+  /* === EMPTY STATE === */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--md-on-surface-variant);
+  }
+  .empty-state .material-icons-round {
+    font-size: 48px;
+    opacity: 0.4;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .empty-state p {
+    font-size: 14px;
+    font-family: 'Google Sans', sans-serif;
+  }
+
+  /* === STATS ROW === */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--md-radius);
+    padding: 16px 12px;
+    text-align: center;
+    transition: all var(--md-transition);
+  }
+  .stat-card:hover { box-shadow: 0 2px 8px var(--md-shadow); transform: translateY(-1px); }
+  .stat-number {
+    font-family: 'Google Sans Display', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--md-primary);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--md-on-surface-variant);
+    font-family: 'Google Sans', sans-serif;
+  }
+
+  /* === FAB === */
+  .fab {
+    position: fixed;
+    bottom: calc(var(--nav-height) + 16px);
+    right: 20px;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--md-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--md-radius-full);
+    padding: 0 20px 0 16px;
+    height: 56px;
+    font-family: 'Google Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(26,115,232,0.4);
+    transition: all var(--md-transition);
+  }
+  .fab:hover {
+    box-shadow: 0 5px 20px rgba(26,115,232,0.5);
+    transform: translateY(-1px);
+  }
+  .fab .material-icons-round { font-size: 22px; }
+
+  /* === BOTTOM NAV === */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--nav-height);
+    background: var(--md-surface-1);
+    border-top: 1px solid var(--md-outline-variant);
+    display: flex;
+    z-index: 100;
+    transition: background var(--md-transition), border-color var(--md-transition);
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--md-on-surface-variant);
+    transition: color var(--md-transition);
+    padding-bottom: 6px;
+    position: relative;
+  }
+  .nav-item.active { color: var(--md-primary); }
+  .nav-indicator {
+    position: absolute;
+    top: 8px;
+    width: 64px; height: 32px;
+    background: var(--md-primary-container);
+    border-radius: var(--md-radius-full);
+    opacity: 0;
+    transition: opacity var(--md-transition);
+  }
+  .nav-item.active .nav-indicator { opacity: 1; }
+  .nav-item .material-icons-round {
+    font-size: 22px;
+    position: relative;
+    z-index: 1;
+    transition: transform var(--md-transition);
+  }
+  .nav-item.active .material-icons-round { transform: scale(1.1); }
+  .nav-label {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-badge {
+    position: absolute;
+    top: 6px;
+    right: calc(50% - 18px);
+    background: var(--md-error);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 16px; height: 16px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+    border: 2px solid var(--md-surface-1);
+    z-index: 2;
+    display: none;
+  }
+
+  /* === MODAL === */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal {
+    background: var(--md-surface-1);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: 680px;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 0 0 32px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .modal-overlay.open .modal {
+    transform: translateY(0);
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--md-outline);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .modal-header {
+    padding: 20px 20px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--md-outline-variant);
+  }
+  .modal-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--md-on-surface);
+    flex: 1;
+  }
+  .modal-close {
+    width: 36px; height: 36px;
+    border: none; background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--md-on-surface-variant);
+    transition: background var(--md-transition);
+  }
+  .modal-close:hover { background: var(--md-surface-2); }
+  .modal-body { padding: 20px; }
+
+  /* === FORM === */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-family: 'Google Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--md-on-surface-variant);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--md-surface-2);
+    border: 1px solid var(--md-outline);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    color: var(--md-on-surface);
+    outline: none;
+    transition: border-color var(--md-transition), background var(--md-transition);
+    -webkit-appearance: none;
+  }
+  .form-input:focus {
+    border-color: var(--md-primary);
+    background: var(--md-surface-1);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-primary) 15%, transparent);
+  }
+  .form-input::placeholder { color: var(--md-on-surface-variant); opacity: 0.7; }
+  select.form-input { cursor: pointer; }
+  textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .type-option {
+    border: 2px solid var(--md-outline);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--md-transition);
+  }
+  .type-option.selected {
+    border-color: var(--md-primary);
+    background: var(--md-blue-chip);
+  }
+  .type-option .material-icons-round { font-size: 22px; color: var(--md-on-surface-variant); display: block; margin-bottom: 4px; }
+  .type-option.selected .material-icons-round { color: var(--md-primary); }
+  .type-option span {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--md-on-surface-variant);
+  }
+  .type-option.selected span { color: var(--md-primary); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--md-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--md-radius-full);
+    padding: 14px;
+    font-family: 'Google Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--md-transition);
+    margin-top: 8px;
+  }
+  .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 4px 12px rgba(26,115,232,0.35); }
+
+  /* === FILTER BAR === */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 14px;
+    scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border: 1px solid var(--md-outline);
+    border-radius: var(--md-radius-full);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--md-on-surface-variant);
+    cursor: pointer;
+    background: var(--md-surface-1);
+    transition: all var(--md-transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .filter-chip:hover { border-color: var(--md-primary); color: var(--md-primary); }
+  .filter-chip.active {
+    background: var(--md-blue-chip);
+    border-color: var(--md-primary);
+    color: var(--md-blue-chip-text);
+  }
+  .filter-chip .material-icons-round { font-size: 15px; }
+
+  /* === EVENT ITEM === */
+  .event-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--md-outline-variant);
+    cursor: pointer;
+    transition: background var(--md-transition);
+    position: relative;
+  }
+  .event-item:last-child { border-bottom: none; }
+  .event-item:hover { background: var(--md-surface-2); }
+  .event-item:hover .task-actions { opacity: 1; }
+  .event-color {
+    width: 4px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    align-self: stretch;
+    min-height: 40px;
+  }
+  .event-body { flex: 1; min-width: 0; }
+  .event-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--md-on-surface);
+    margin-bottom: 3px;
+  }
+  .event-meta { font-size: 12px; color: var(--md-on-surface-variant); }
+
+  /* === SETTINGS PAGE === */
+  .settings-section {
+    background: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--md-radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .settings-section-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--md-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 14px 16px 10px;
+  }
+  .settings-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--md-outline-variant);
+    cursor: pointer;
+    transition: background var(--md-transition);
+  }
+  .settings-item:hover { background: var(--md-surface-2); }
+  .settings-item .material-icons-round { color: var(--md-on-surface-variant); font-size: 22px; }
+  .settings-item-info { flex: 1; }
+  .settings-item-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--md-on-surface);
+    margin-bottom: 2px;
+  }
+  .settings-item-desc { font-size: 12px; color: var(--md-on-surface-variant); }
+  .toggle {
+    width: 48px; height: 26px;
+    background: var(--md-outline);
+    border-radius: 13px;
+    position: relative;
+    cursor: pointer;
+    transition: background var(--md-transition);
+    flex-shrink: 0;
+    border: none;
+  }
+  .toggle.on { background: var(--md-primary); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 22px; height: 22px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px; left: 2px;
+    transition: transform var(--md-transition);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .toggle.on::after { transform: translateX(22px); }
+
+  /* === PAGE TITLE === */
+  .page-title {
+    font-family: 'Google Sans Display', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--md-on-surface-variant);
+    margin-bottom: 20px;
+  }
+
+  /* === ANIMATIONS === */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .card { animation: fadeIn 0.3s ease; }
+
+  /* === SUBJECT COLOR INDICATOR === */
+  .subject-color-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+
+  /* === DEADLINE BADGE === */
+  .deadline-badge {
+    font-size: 11px;
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: var(--md-radius-full);
+  }
+  .deadline-badge.today { background: var(--md-red-chip); color: var(--md-red-chip-text); }
+  .deadline-badge.tomorrow { background: var(--md-yellow-chip); color: var(--md-yellow-chip-text); }
+  .deadline-badge.soon { background: var(--md-blue-chip); color: var(--md-blue-chip-text); }
+  .deadline-badge.later { background: var(--md-surface-2); color: var(--md-on-surface-variant); }
+
+  /* === PROGRESS BAR === */
+  .progress-bar {
+    height: 4px;
+    background: var(--md-outline-variant);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 16px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--md-primary), #34a853);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .progress-label {
+    font-size: 12px;
+    color: var(--md-on-surface-variant);
+    margin-top: 6px;
+    font-family: 'Google Sans', sans-serif;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--md-outline); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--md-on-surface-variant); }
+
+  /* Color map for subjects */
+  .color-Merah { background: #ea4335; }
+  .color-Biru { background: #1a73e8; }
+  .color-Hijau { background: #34a853; }
+  .color-Kuning { background: #fbbc04; }
+  .color-Ungu { background: #9c27b0; }
+  .color-Oranye { background: #ff6d00; }
+  .color-Pink { background: #e91e63; }
+  .color-Teal { background: #009688; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="logo">
+    <div class="logo-icon"><span class="material-icons-round">calendar_today</span></div>
+    <span class="logo-text">My<span>Day</span></span>
+  </div>
+  <div class="top-bar-actions">
+    <button class="icon-btn" onclick="toggleTheme()" title="Ganti tema">
+      <span class="material-icons-round" id="theme-icon">dark_mode</span>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- === HOME PAGE === -->
+  <div class="page active" id="page-home">
+    <!-- Hero Clock -->
+    <div class="hero-clock">
+      <div class="clock-time" id="clock-time">--:--</div>
+      <div class="clock-date" id="clock-date">Memuat tanggal...</div>
+      <div class="clock-day" id="clock-day"></div>
+      <div class="progress-bar" style="margin-top:16px; background:rgba(255,255,255,0.2)">
+        <div class="progress-fill" id="day-progress" style="background:rgba(255,255,255,0.7); width:0%"></div>
+      </div>
+      <div class="progress-label" style="color:rgba(255,255,255,0.7)" id="day-progress-label">0% hari ini sudah berlalu</div>
+    </div>
+
+    <!-- Alerts Container -->
+    <div id="alerts-container"></div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number" id="stat-pending">0</div>
+        <div class="stat-label">PR Aktif</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="stat-today">0</div>
+        <div class="stat-label">Dikumpul Hari Ini</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="stat-done">0</div>
+        <div class="stat-label">Selesai</div>
+      </div>
+    </div>
+
+    <!-- Today's Tasks -->
+    <div class="section-header">
+      <div class="section-title"><span class="material-icons-round">assignment_late</span>Dikumpul Hari Ini</div>
+    </div>
+    <div class="card" id="today-tasks-card">
+      <div class="empty-state" id="today-empty">
+        <span class="material-icons-round">check_circle_outline</span>
+        <p>Tidak ada PR yang dikumpul hari ini! 🎉</p>
+      </div>
+      <div id="today-tasks-list"></div>
+    </div>
+
+    <!-- Today Events -->
+    <div class="section-header" style="margin-top:16px">
+      <div class="section-title"><span class="material-icons-round">event</span>Agenda Hari Ini</div>
+    </div>
+    <div class="card" id="today-events-card">
+      <div class="empty-state" id="today-events-empty">
+        <span class="material-icons-round">event_available</span>
+        <p>Tidak ada agenda hari ini</p>
+      </div>
+      <div id="today-events-list"></div>
+    </div>
+
+    <!-- Upcoming -->
+    <div class="section-header" style="margin-top:16px">
+      <div class="section-title"><span class="material-icons-round">schedule</span>Deadline Mendatang</div>
+      <button class="see-all-btn" onclick="navigateTo('tasks')">Lihat semua</button>
+    </div>
+    <div class="card">
+      <div class="empty-state" id="upcoming-empty">
+        <span class="material-icons-round">hourglass_empty</span>
+        <p>Tidak ada deadline mendatang</p>
+      </div>
+      <div id="upcoming-list"></div>
+    </div>
+  </div>
+
+  <!-- === TASKS / PR PAGE === -->
+  <div class="page" id="page-tasks">
+    <div class="page-title">PR & Tugas</div>
+    <div class="page-subtitle" id="tasks-subtitle">Kelola semua tugas kuliahmu</div>
+
+    <div class="filter-bar">
+      <button class="filter-chip active" data-filter="all" onclick="filterTasks(this, 'all')">
+        <span class="material-icons-round">list</span>Semua
+      </button>
+      <button class="filter-chip" data-filter="pending" onclick="filterTasks(this, 'pending')">
+        <span class="material-icons-round">radio_button_unchecked</span>Belum
+      </button>
+      <button class="filter-chip" data-filter="done" onclick="filterTasks(this, 'done')">
+        <span class="material-icons-round">check_circle</span>Selesai
+      </button>
+      <button class="filter-chip" data-filter="today" onclick="filterTasks(this, 'today')">
+        <span class="material-icons-round">today</span>Hari Ini
+      </button>
+      <button class="filter-chip" data-filter="high" onclick="filterTasks(this, 'high')">
+        <span class="material-icons-round">priority_high</span>Penting
+      </button>
+    </div>
+
+    <div class="card" id="tasks-card">
+      <div class="empty-state" id="tasks-empty">
+        <span class="material-icons-round">assignment</span>
+        <p>Belum ada tugas. Tambah PR dengan tombol + di bawah!</p>
+      </div>
+      <div id="tasks-list"></div>
+    </div>
+  </div>
+
+  <!-- === AGENDA PAGE === -->
+  <div class="page" id="page-agenda">
+    <div class="page-title">Agenda</div>
+    <div class="page-subtitle">Jadwal acara dan kegiatan</div>
+
+    <div class="filter-bar">
+      <button class="filter-chip active" data-filter="all" onclick="filterEvents(this, 'all')">
+        <span class="material-icons-round">list</span>Semua
+      </button>
+      <button class="filter-chip" data-filter="upcoming" onclick="filterEvents(this, 'upcoming')">
+        <span class="material-icons-round">upcoming</span>Mendatang
+      </button>
+      <button class="filter-chip" data-filter="past" onclick="filterEvents(this, 'past')">
+        <span class="material-icons-round">history</span>Lewat
+      </button>
+    </div>
+
+    <div class="card" id="events-card">
+      <div class="empty-state" id="events-empty">
+        <span class="material-icons-round">event_note</span>
+        <p>Belum ada agenda. Tambah acara dengan tombol + di bawah!</p>
+      </div>
+      <div id="events-list"></div>
+    </div>
+  </div>
+
+  <!-- === SETTINGS PAGE === -->
+  <div class="page" id="page-settings">
+    <div class="page-title">Pengaturan</div>
+    <div class="page-subtitle">Preferensi & kustomisasi</div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Tampilan</div>
+      <div class="settings-item" onclick="toggleTheme()">
+        <span class="material-icons-round">dark_mode</span>
+        <div class="settings-item-info">
+          <div class="settings-item-title">Mode Gelap</div>
+          <div class="settings-item-desc">Ganti antara tema terang dan gelap</div>
+        </div>
+        <button class="toggle" id="dark-toggle" onclick="event.stopPropagation(); toggleTheme()"></button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Data</div>
+      <div class="settings-item" onclick="exportData()">
+        <span class="material-icons-round">download</span>
+        <div class="settings-item-info">
+          <div class="settings-item-title">Export Data</div>
+          <div class="settings-item-desc">Download semua data sebagai JSON</div>
+        </div>
+        <span class="material-icons-round" style="color:var(--md-on-surface-variant);font-size:18px">chevron_right</span>
+      </div>
+      <div class="settings-item" onclick="confirmClearData()">
+        <span class="material-icons-round" style="color:var(--md-error)">delete_sweep</span>
+        <div class="settings-item-info">
+          <div class="settings-item-title" style="color:var(--md-error)">Hapus Semua Data</div>
+          <div class="settings-item-desc">Hapus semua tugas dan agenda</div>
+        </div>
+        <span class="material-icons-round" style="color:var(--md-on-surface-variant);font-size:18px">chevron_right</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Info</div>
+      <div class="settings-item" style="cursor:default">
+        <span class="material-icons-round">info</span>
+        <div class="settings-item-info">
+          <div class="settings-item-title">MyDay Scheduler</div>
+          <div class="settings-item-desc">Versi 1.0 • Data tersimpan lokal di browser</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddModal()" id="fab-btn">
+  <span class="material-icons-round">add</span>
+  <span>Tambah</span>
+</button>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-home" onclick="navigateTo('home')">
+    <div class="nav-indicator"></div>
+    <span class="material-icons-round">home</span>
+    <span class="nav-label">Home</span>
+  </button>
+  <button class="nav-item" id="nav-tasks" onclick="navigateTo('tasks')">
+    <div class="nav-indicator"></div>
+    <span class="material-icons-round">assignment</span>
+    <span class="nav-label">PR & Tugas</span>
+    <span class="nav-badge" id="badge-tasks"></span>
+  </button>
+  <button class="nav-item" id="nav-agenda" onclick="navigateTo('agenda')">
+    <div class="nav-indicator"></div>
+    <span class="material-icons-round">event</span>
+    <span class="nav-label">Agenda</span>
+    <span class="nav-badge" id="badge-agenda"></span>
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="navigateTo('settings')">
+    <div class="nav-indicator"></div>
+    <span class="material-icons-round">settings</span>
+    <span class="nav-label">Setelan</span>
+  </button>
+</nav>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Tambah Item</div>
+      <button class="modal-close" onclick="closeModal('add-modal')">
+        <span class="material-icons-round">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="type-selector">
+        <div class="type-option selected" id="type-task" onclick="selectType('task')">
+          <span class="material-icons-round">assignment</span>
+          <span>PR / Tugas</span>
+        </div>
+        <div class="type-option" id="type-event" onclick="selectType('event')">
+          <span class="material-icons-round">event</span>
+          <span>Agenda / Acara</span>
+        </div>
+      </div>
+
+      <!-- Task Form -->
+      <div id="task-form">
+        <div class="form-group">
+          <label class="form-label">Mata Kuliah / Mapel</label>
+          <input class="form-input" id="task-subject" placeholder="Contoh: Kalkulus, Pemrograman..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Judul Tugas</label>
+          <input class="form-input" id="task-title-input" placeholder="Contoh: Latihan soal bab 3..." />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Halaman</label>
+            <input class="form-input" id="task-pages" placeholder="Contoh: 45-50" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Deadline</label>
+            <input class="form-input" type="date" id="task-deadline" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Prioritas</label>
+            <select class="form-input" id="task-priority">
+              <option value="medium">⚡ Medium</option>
+              <option value="high">🔴 Tinggi</option>
+              <option value="low">🟢 Rendah</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Warna Mapel</label>
+            <select class="form-input" id="task-color">
+              <option value="Biru">🔵 Biru</option>
+              <option value="Merah">🔴 Merah</option>
+              <option value="Hijau">🟢 Hijau</option>
+              <option value="Kuning">🟡 Kuning</option>
+              <option value="Ungu">🟣 Ungu</option>
+              <option value="Oranye">🟠 Oranye</option>
+              <option value="Pink">🩷 Pink</option>
+              <option value="Teal">🩵 Teal</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Catatan (opsional)</label>
+          <textarea class="form-input" id="task-notes" placeholder="Instruksi tambahan, link, dll..."></textarea>
+        </div>
+      </div>
+
+      <!-- Event Form -->
+      <div id="event-form" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Nama Acara</label>
+          <input class="form-input" id="event-title-input" placeholder="Contoh: Presentasi kelompok..." />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tanggal</label>
+            <input class="form-input" type="date" id="event-date" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jam (opsional)</label>
+            <input class="form-input" type="time" id="event-time" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lokasi (opsional)</label>
+          <input class="form-input" id="event-location" placeholder="Contoh: Ruang B201..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <select class="form-input" id="event-category">
+            <option value="kuliah">🎓 Kuliah</option>
+            <option value="ujian">📝 Ujian</option>
+            <option value="meeting">👥 Meeting / Rapat</option>
+            <option value="personal">🧍 Personal</option>
+            <option value="lainnya">📌 Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Catatan (opsional)</label>
+          <textarea class="form-input" id="event-notes" placeholder="Detail tambahan..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveItem()">
+        <span id="save-btn-text">Simpan PR / Tugas</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA & STATE
+// ============================================================
+let tasks = JSON.parse(localStorage.getItem('myday_tasks') || '[]');
+let events = JSON.parse(localStorage.getItem('myday_events') || '[]');
+let currentPage = 'home';
+let currentType = 'task';
+let taskFilter = 'all';
+let eventFilter = 'all';
+let editingId = null;
+
+const DAYS = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+const SUBJECT_COLORS = {
+  Merah: '#ea4335', Biru: '#1a73e8', Hijau: '#34a853',
+  Kuning: '#fbbc04', Ungu: '#9c27b0', Oranye: '#ff6d00',
+  Pink: '#e91e63', Teal: '#009688'
+};
+
+const EVENT_COLORS = {
+  kuliah: '#1a73e8', ujian: '#ea4335', meeting: '#34a853',
+  personal: '#9c27b0', lainnya: '#ff6d00'
+};
+
+// ============================================================
+// CLOCK
+// ============================================================
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock-time').textContent = `${h}:${m}`;
+  document.getElementById('clock-date').textContent =
+    `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+
+  const totalSecs = 24 * 3600;
+  const elapsed = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const pct = Math.round((elapsed / totalSecs) * 100);
+  document.getElementById('day-progress').style.width = pct + '%';
+  document.getElementById('day-progress-label').textContent = `${pct}% hari ini sudah berlalu`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navigateTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  currentPage = page;
+
+  const fab = document.getElementById('fab-btn');
+  fab.style.display = (page === 'settings') ? 'none' : 'flex';
+
+  if (page === 'home') renderHome();
+  else if (page === 'tasks') renderTasks();
+  else if (page === 'agenda') renderEvents();
+
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// SAVE DATA
+// ============================================================
+function saveData() {
+  localStorage.setItem('myday_tasks', JSON.stringify(tasks));
+  localStorage.setItem('myday_events', JSON.stringify(events));
+}
+
+// ============================================================
+// THEME
+// ============================================================
+function initTheme() {
+  const saved = localStorage.getItem('myday_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeUI(saved);
+}
+function toggleTheme() {
+  const curr = document.documentElement.getAttribute('data-theme');
+  const next = curr === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('myday_theme', next);
+  updateThemeUI(next);
+}
+function updateThemeUI(theme) {
+  const icon = document.getElementById('theme-icon');
+  const toggle = document.getElementById('dark-toggle');
+  if (theme === 'dark') {
+    icon.textContent = 'light_mode';
+    toggle.classList.add('on');
+  } else {
+    icon.textContent = 'dark_mode';
+    toggle.classList.remove('on');
+  }
+}
+initTheme();
+
+// ============================================================
+// DATE HELPERS
+// ============================================================
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function tomorrowStr() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatDate(str) {
+  if (!str) return '-';
+  const [y,m,d] = str.split('-');
+  return `${d} ${MONTHS[parseInt(m)-1]} ${y}`;
+}
+function deadlineBadge(deadline) {
+  if (!deadline) return '';
+  const t = todayStr();
+  const tom = tomorrowStr();
+  const diff = Math.ceil((new Date(deadline) - new Date(t)) / (1000*60*60*24));
+  if (deadline < t) return `<span class="deadline-badge today">Terlambat!</span>`;
+  if (deadline === t) return `<span class="deadline-badge today">Hari ini!</span>`;
+  if (deadline === tom) return `<span class="deadline-badge tomorrow">Besok</span>`;
+  if (diff <= 7) return `<span class="deadline-badge soon">${diff} hari lagi</span>`;
+  return `<span class="deadline-badge later">${formatDate(deadline)}</span>`;
+}
+
+// ============================================================
+// RENDER HOME
+// ============================================================
+function renderHome() {
+  const today = todayStr();
+
+  // Today tasks
+  const todayTasks = tasks.filter(t => t.deadline === today && !t.done);
+  const todayDone  = tasks.filter(t => t.deadline === today && t.done);
+  const pending    = tasks.filter(t => !t.done);
+  const allDone    = tasks.filter(t => t.done);
+
+  document.getElementById('stat-pending').textContent = pending.length;
+  document.getElementById('stat-today').textContent = todayTasks.length;
+  document.getElementById('stat-done').textContent = allDone.length;
+
+  // Alerts
+  const alertsEl = document.getElementById('alerts-container');
+  alertsEl.innerHTML = '';
+  if (todayTasks.length > 0) {
+    alertsEl.innerHTML += `
+      <div class="alert-strip urgent">
+        <span class="material-icons-round">warning</span>
+        <div class="alert-content">
+          <div class="alert-title">⚠️ ${todayTasks.length} PR dikumpul hari ini!</div>
+          <div class="alert-desc">${todayTasks.map(t => t.subject + ': ' + t.title).join(' • ')}</div>
+        </div>
+      </div>`;
+  }
+  const overdue = tasks.filter(t => t.deadline && t.deadline < today && !t.done);
+  if (overdue.length > 0) {
+    alertsEl.innerHTML += `
+      <div class="alert-strip urgent">
+        <span class="material-icons-round">error</span>
+        <div class="alert-content">
+          <div class="alert-title">🚨 ${overdue.length} tugas melewati deadline!</div>
+          <div class="alert-desc">${overdue.map(t => t.subject + ': ' + t.title).join(' • ')}</div>
+        </div>
+      </div>`;
+  }
+  if (todayTasks.length === 0 && overdue.length === 0 && pending.length > 0) {
+    alertsEl.innerHTML += `
+      <div class="alert-strip success">
+        <span class="material-icons-round">check_circle</span>
+        <div class="alert-content">
+          <div class="alert-title">Hari ini bebas PR! 🎉</div>
+          <div class="alert-desc">Tidak ada deadline hari ini. ${pending.length} tugas aktif lainnya.</div>
+        </div>
+      </div>`;
+  }
+
+  // Today tasks list
+  const todayList = document.getElementById('today-tasks-list');
+  const todayEmpty = document.getElementById('today-empty');
+  todayList.innerHTML = '';
+  if (todayTasks.length === 0) {
+    todayEmpty.style.display = '';
+  } else {
+    todayEmpty.style.display = 'none';
+    todayTasks.forEach(t => {
+      todayList.innerHTML += buildTaskItem(t, true);
+    });
+  }
+
+  // Today events
+  const todayEventsList = document.getElementById('today-events-list');
+  const todayEventsEmpty = document.getElementById('today-events-empty');
+  const todayEvents = events.filter(e => e.date === today);
+  todayEventsList.innerHTML = '';
+  if (todayEvents.length === 0) {
+    todayEventsEmpty.style.display = '';
+  } else {
+    todayEventsEmpty.style.display = 'none';
+    todayEvents.forEach(e => {
+      todayEventsList.innerHTML += buildEventItem(e);
+    });
+  }
+
+  // Upcoming (next 7 days, not today)
+  const tom = tomorrowStr();
+  const in7 = new Date(); in7.setDate(in7.getDate() + 7);
+  const in7Str = in7.toISOString().slice(0,10);
+  const upcoming = tasks
+    .filter(t => t.deadline && t.deadline >= tom && t.deadline <= in7Str && !t.done)
+    .sort((a,b) => a.deadline.localeCompare(b.deadline))
+    .slice(0, 5);
+  const upcomingList = document.getElementById('upcoming-list');
+  const upcomingEmpty = document.getElementById('upcoming-empty');
+  upcomingList.innerHTML = '';
+  if (upcoming.length === 0) {
+    upcomingEmpty.style.display = '';
+  } else {
+    upcomingEmpty.style.display = 'none';
+    upcoming.forEach(t => {
+      upcomingList.innerHTML += buildTaskItem(t, true);
+    });
+  }
+
+  updateBadges();
+}
+
+function buildTaskItem(t, compact = false) {
+  const color = SUBJECT_COLORS[t.color] || '#1a73e8';
+  const priorityClass = t.priority === 'high' ? 'high' : t.priority === 'low' ? 'low' : 'medium';
+  return `
+    <div class="task-item ${t.done ? 'done' : ''}" id="task-${t.id}">
+      <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask('${t.id}')"></div>
+      <div class="task-body">
+        <div class="task-subject-row">
+          <span class="subject-color-dot" style="background:${color}"></span>
+          <span class="chip blue">${t.subject}</span>
+          ${!t.done ? deadlineBadge(t.deadline) : '<span class="chip green">Selesai ✓</span>'}
+          ${t.priority === 'high' ? '<span class="chip red">Penting</span>' : ''}
+        </div>
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta">${t.pages ? `Hal. ${t.pages}` : ''}${t.pages && t.notes ? ' • ' : ''}${t.notes ? t.notes.slice(0,60) + (t.notes.length > 60 ? '…' : '') : ''}</div>
+      </div>
+      <div class="task-actions">
+        <button class="task-action-btn" onclick="editTask('${t.id}')" title="Edit"><span class="material-icons-round">edit</span></button>
+        <button class="task-action-btn delete" onclick="deleteTask('${t.id}')" title="Hapus"><span class="material-icons-round">delete</span></button>
+      </div>
+    </div>`;
+}
+
+function buildEventItem(e) {
+  const color = EVENT_COLORS[e.category] || '#ff6d00';
+  const catLabels = {kuliah:'🎓 Kuliah',ujian:'📝 Ujian',meeting:'👥 Meeting',personal:'🧍 Personal',lainnya:'📌 Lainnya'};
+  const today = todayStr();
+  const isPast = e.date < today;
+  return `
+    <div class="event-item ${isPast ? 'done' : ''}">
+      <div class="event-color" style="background:${color}"></div>
+      <div class="event-body">
+        <div class="event-title">${e.title}</div>
+        <div class="event-meta">${formatDate(e.date)}${e.time ? ' • ' + e.time : ''}${e.location ? ' • 📍 ' + e.location : ''} • ${catLabels[e.category]||'Lainnya'}</div>
+        ${e.notes ? `<div class="event-meta" style="margin-top:2px">${e.notes.slice(0,80)}</div>` : ''}
+      </div>
+      <div class="task-actions">
+        <button class="task-action-btn delete" onclick="deleteEvent('${e.id}')" title="Hapus"><span class="material-icons-round">delete</span></button>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// RENDER TASKS PAGE
+// ============================================================
+function renderTasks() {
+  const today = todayStr();
+  let filtered = [...tasks];
+
+  if (taskFilter === 'pending') filtered = filtered.filter(t => !t.done);
+  else if (taskFilter === 'done') filtered = filtered.filter(t => t.done);
+  else if (taskFilter === 'today') filtered = filtered.filter(t => t.deadline === today);
+  else if (taskFilter === 'high') filtered = filtered.filter(t => t.priority === 'high');
+
+  filtered.sort((a,b) => {
+    if (!a.deadline) return 1;
+    if (!b.deadline) return -1;
+    return a.deadline.localeCompare(b.deadline);
+  });
+
+  const list = document.getElementById('tasks-list');
+  const empty = document.getElementById('tasks-empty');
+  list.innerHTML = '';
+
+  const pendingCount = tasks.filter(t => !t.done).length;
+  document.getElementById('tasks-subtitle').textContent =
+    `${pendingCount} tugas aktif • ${tasks.filter(t=>t.done).length} selesai`;
+
+  if (filtered.length === 0) {
+    empty.style.display = '';
+  } else {
+    empty.style.display = 'none';
+    filtered.forEach(t => { list.innerHTML += buildTaskItem(t); });
+  }
+  updateBadges();
+}
+
+function filterTasks(btn, filter) {
+  taskFilter = filter;
+  document.querySelectorAll('#page-tasks .filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+// ============================================================
+// RENDER EVENTS PAGE
+// ============================================================
+function renderEvents() {
+  const today = todayStr();
+  let filtered = [...events];
+
+  if (eventFilter === 'upcoming') filtered = filtered.filter(e => e.date >= today);
+  else if (eventFilter === 'past') filtered = filtered.filter(e => e.date < today);
+
+  filtered.sort((a,b) => a.date.localeCompare(b.date));
+
+  const list = document.getElementById('events-list');
+  const empty = document.getElementById('events-empty');
+  list.innerHTML = '';
+
+  if (filtered.length === 0) {
+    empty.style.display = '';
+  } else {
+    empty.style.display = 'none';
+    filtered.forEach(e => { list.innerHTML += buildEventItem(e); });
+  }
+  updateBadges();
+}
+
+function filterEvents(btn, filter) {
+  eventFilter = filter;
+  document.querySelectorAll('#page-agenda .filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderEvents();
+}
+
+// ============================================================
+// BADGES
+// ============================================================
+function updateBadges() {
+  const today = todayStr();
+  const todayPending = tasks.filter(t => t.deadline === today && !t.done).length;
+  const overdue = tasks.filter(t => t.deadline && t.deadline < today && !t.done).length;
+  const total = todayPending + overdue;
+  const badgeTasks = document.getElementById('badge-tasks');
+  if (total > 0) {
+    badgeTasks.style.display = 'flex';
+    badgeTasks.textContent = total > 9 ? '9+' : total;
+  } else {
+    badgeTasks.style.display = 'none';
+  }
+
+  const todayEvents = events.filter(e => e.date === today).length;
+  const badgeAgenda = document.getElementById('badge-agenda');
+  if (todayEvents > 0) {
+    badgeAgenda.style.display = 'flex';
+    badgeAgenda.textContent = todayEvents;
+  } else {
+    badgeAgenda.style.display = 'none';
+  }
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openAddModal() {
+  editingId = null;
+  selectType(currentPage === 'agenda' ? 'event' : 'task');
+  clearForms();
+  // Set default deadline to today
+  document.getElementById('task-deadline').value = todayStr();
+  document.getElementById('event-date').value = todayStr();
+  document.getElementById('modal-title').textContent = 'Tambah Item';
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function selectType(type) {
+  currentType = type;
+  document.getElementById('type-task').classList.toggle('selected', type === 'task');
+  document.getElementById('type-event').classList.toggle('selected', type === 'event');
+  document.getElementById('task-form').style.display = type === 'task' ? '' : 'none';
+  document.getElementById('event-form').style.display = type === 'event' ? '' : 'none';
+  document.getElementById('save-btn-text').textContent = type === 'task' ? 'Simpan PR / Tugas' : 'Simpan Agenda';
+}
+
+function clearForms() {
+  ['task-subject','task-title-input','task-pages','task-notes',
+   'event-title-input','event-time','event-location','event-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('task-priority').value = 'medium';
+  document.getElementById('task-color').value = 'Biru';
+  document.getElementById('event-category').value = 'kuliah';
+}
+
+function saveItem() {
+  if (currentType === 'task') saveTask();
+  else saveEvent();
+}
+
+function saveTask() {
+  const subject = document.getElementById('task-subject').value.trim();
+  const title = document.getElementById('task-title-input').value.trim();
+  if (!subject || !title) {
+    alert('Harap isi Mata Kuliah dan Judul Tugas!');
+    return;
+  }
+  const taskData = {
+    id: editingId || Date.now().toString(),
+    subject,
+    title,
+    pages: document.getElementById('task-pages').value.trim(),
+    deadline: document.getElementById('task-deadline').value,
+    priority: document.getElementById('task-priority').value,
+    color: document.getElementById('task-color').value,
+    notes: document.getElementById('task-notes').value.trim(),
+    done: false,
+    createdAt: new Date().toISOString()
+  };
+
+  if (editingId) {
+    const idx = tasks.findIndex(t => t.id === editingId);
+    if (idx !== -1) { taskData.done = tasks[idx].done; tasks[idx] = taskData; }
+  } else {
+    tasks.push(taskData);
+  }
+
+  saveData();
+  closeModal('add-modal');
+  renderHome();
+  if (currentPage === 'tasks') renderTasks();
+}
+
+function saveEvent() {
+  const title = document.getElementById('event-title-input').value.trim();
+  const date = document.getElementById('event-date').value;
+  if (!title || !date) {
+    alert('Harap isi Nama Acara dan Tanggal!');
+    return;
+  }
+  const eventData = {
+    id: Date.now().toString(),
+    title,
+    date,
+    time: document.getElementById('event-time').value,
+    location: document.getElementById('event-location').value.trim(),
+    category: document.getElementById('event-category').value,
+    notes: document.getElementById('event-notes').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  events.push(eventData);
+  saveData();
+  closeModal('add-modal');
+  renderHome();
+  if (currentPage === 'agenda') renderEvents();
+}
+
+// ============================================================
+// TASK ACTIONS
+// ============================================================
+function toggleTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.done = !task.done;
+  saveData();
+  renderHome();
+  if (currentPage === 'tasks') renderTasks();
+}
+
+function editTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  editingId = id;
+  selectType('task');
+  document.getElementById('task-subject').value = task.subject;
+  document.getElementById('task-title-input').value = task.title;
+  document.getElementById('task-pages').value = task.pages || '';
+  document.getElementById('task-deadline').value = task.deadline || '';
+  document.getElementById('task-priority').value = task.priority || 'medium';
+  document.getElementById('task-color').value = task.color || 'Biru';
+  document.getElementById('task-notes').value = task.notes || '';
+  document.getElementById('modal-title').textContent = 'Edit Tugas';
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function deleteTask(id) {
+  if (!confirm('Hapus tugas ini?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  saveData();
+  renderHome();
+  if (currentPage === 'tasks') renderTasks();
+}
+
+function deleteEvent(id) {
+  if (!confirm('Hapus agenda ini?')) return;
+  events = events.filter(e => e.id !== id);
+  saveData();
+  renderHome();
+  if (currentPage === 'agenda') renderEvents();
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function exportData() {
+  const data = { tasks, events, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `myday-backup-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function confirmClearData() {
+  if (confirm('Yakin mau hapus SEMUA data? Ini tidak bisa dikembalikan!')) {
+    tasks = []; events = [];
+    saveData();
+    renderHome();
+  }
+}
+
+// Close modal on overlay click
+document.getElementById('add-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal('add-modal');
+});
+
+// ============================================================
+// INIT
+// ============================================================
+renderHome();
+</script>
+</body>
+</html>
